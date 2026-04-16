@@ -1,0 +1,180 @@
+# College Application Q&A Agent Configuration
+# Edit this file to evolve topics, search queries, and target sites over time.
+
+# ──────────────────────────────────────────
+# LLM Settings
+# ──────────────────────────────────────────
+llm:
+  default_model: openai          # options: claude | openai | gemini
+  models:
+    claude:
+      model_id: "claude-sonnet-4-6"
+      max_tokens: 2048
+    openai:
+      model_id: "gpt-4o"
+      max_tokens: 2048
+    gemini:
+      model_id: "gemini-1.5-pro"
+      max_tokens: 2048
+
+# ──────────────────────────────────────────
+# Google Custom Search API
+# Used by search_agent.py to find relevant pages across all sites.
+# Get credentials at: https://developers.google.com/custom-search/v1/overview
+# ──────────────────────────────────────────
+google_search:
+  enabled: false                 # set true once you have credentials
+  api_key: ""                    # set in .env as GOOGLE_API_KEY
+  cx: ""                         # Custom Search Engine ID, set in .env as GOOGLE_CX
+
+# ──────────────────────────────────────────
+# Storage Settings
+# ──────────────────────────────────────────
+storage:
+  data_dir: "data"
+  records_per_file: 100
+  indent: 2
+  refresh_days: 7                # re-run a (site, query) pair after this many days
+
+# ──────────────────────────────────────────
+# College Application Topics
+# ──────────────────────────────────────────
+topics:
+  - common_app_essay
+  - supplemental_essays
+  - activities_section
+  - financial_aid
+  - scholarships
+  - early_decision_early_action
+  - waitlist_strategy
+  - letters_of_recommendation
+  - standardized_tests
+  - college_list_building
+  - interviews
+  - demonstrated_interest
+  - transfer_applications
+  - international_students
+  - first_generation_students
+
+# ──────────────────────────────────────────
+# Search Queries
+# ──────────────────────────────────────────
+search:
+  queries:
+    - "Common App essay tips college application"
+    - "how to write supplemental essays college"
+    - "college application activities section advice"
+    - "FAFSA financial aid tips first time"
+    - "how to get off college waitlist"
+    - "early decision vs early action pros cons"
+    - "letters of recommendation college application tips"
+    - "how to build college list high school"
+    - "college interview tips advice"
+    - "demonstrated interest college admissions"
+    - "transfer college application tips"
+    - "international student college application USA"
+    - "first generation college student application help"
+    - "SAT ACT test optional college policy"
+    - "college scholarship application tips"
+    - "how to ask for fee waiver Common App"
+    - "college application mistakes to avoid"
+    - "waitlist college email tips"
+    - "how to write why this college essay"
+    - "college application timeline checklist"
+
+# ──────────────────────────────────────────
+# Target Sites
+# type: reddit         → uses Reddit JSON API (no JS needed)
+# type: google_search  → discovered via Google Custom Search, fetched with Playwright
+# type: forum/blog     → fetched with Playwright (JS-rendered)
+# enabled: false       → paused, not deleted
+# ──────────────────────────────────────────
+sites:
+  - name: reddit_applying_to_college
+    enabled: true
+    base_url: "https://www.reddit.com/r/ApplyingToCollege"
+    search_url: "https://www.reddit.com/r/ApplyingToCollege/search.json?q={query}&restrict_sr=1&sort=relevance"
+    type: reddit
+    notes: "Main subreddit for college applicants."
+
+  - name: reddit_chanceme
+    enabled: true
+    base_url: "https://www.reddit.com/r/chanceme"
+    search_url: "https://www.reddit.com/r/chanceme/search.json?q={query}&restrict_sr=1&sort=relevance"
+    type: reddit
+    notes: "Students asking for admission chances."
+
+  - name: reddit_college_admissions
+    enabled: true
+    base_url: "https://www.reddit.com/r/collegeadmissions"
+    search_url: "https://www.reddit.com/r/collegeadmissions/search.json?q={query}&restrict_sr=1&sort=relevance"
+    type: reddit
+    notes: "General college admissions discussion."
+
+  - name: college_confidential
+    enabled: true
+    base_url: "https://talk.collegeconfidential.com"
+    search_url: "https://talk.collegeconfidential.com/search?q={query}"
+    type: forum
+    fetch_method: playwright
+    notes: "JS-rendered forum. Requires Playwright."
+
+  - name: commonapp_help
+    enabled: true
+    base_url: "https://appsupport.commonapp.org"
+    search_url: "https://appsupport.commonapp.org/s/global-search/{query}"
+    type: help_center
+    fetch_method: playwright
+    notes: "Official CommonApp help center. JS-rendered."
+
+  - name: prepscholar_blog
+    enabled: true
+    base_url: "https://blog.prepscholar.com"
+    search_url: "https://blog.prepscholar.com/?s={query}"
+    type: blog
+    fetch_method: playwright
+    notes: "Was blocked with requests. Playwright bypasses this."
+
+  - name: collegevine_blog
+    enabled: true
+    base_url: "https://www.collegevine.com"
+    search_url: "https://www.collegevine.com/faq/search?query={query}"
+    type: blog
+    fetch_method: playwright
+    notes: "Fixed search URL to use /faq/search endpoint."
+
+  - name: niche_college_qa
+    enabled: true
+    base_url: "https://www.niche.com"
+    search_url: "https://www.niche.com/colleges/search/?q={query}"
+    type: blog
+    fetch_method: playwright
+    notes: "Was blocked with requests. Playwright bypasses this."
+
+# ──────────────────────────────────────────
+# Site Discovery Settings
+# ──────────────────────────────────────────
+discovery:
+  enabled: true
+  search_queries:
+    - "college application advice forum site"
+    - "undergraduate admissions Q&A community"
+    - "college essay help forum students"
+  min_relevance_score: 0.7
+  max_new_sites_per_run: 5
+
+# ──────────────────────────────────────────
+# QA Processing Settings
+# ──────────────────────────────────────────
+processing:
+  relevance_threshold: 0.6       # 0-1 LLM score; below this, discard the record
+  answer_quality_threshold: 3    # 1-5; qa_answerer.py regenerates answers below this
+
+# ──────────────────────────────────────────
+# Rate Limiting (seconds between requests per domain)
+# ──────────────────────────────────────────
+rate_limits:
+  default: 2.0
+  reddit: 3.0
+  talk.collegeconfidential.com: 2.5
+  blog.prepscholar.com: 2.0
