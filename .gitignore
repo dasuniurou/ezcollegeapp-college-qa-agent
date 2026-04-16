@@ -1,4 +1,8 @@
 .env
-data/
 __pycache__/
 *.pyc
+
+# Dedup tracking files — local only, no need to share
+data/visited_urls.json
+data/question_hashes.json
+data/search_log.json
